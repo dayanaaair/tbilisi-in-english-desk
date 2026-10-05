@@ -1,0 +1,703 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Рабочая панель первого сезона Tbilisi, in English">
+  <meta name="theme-color" content="#11162b">
+  <title>Tbilisi, in English · production desk</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%2311162b'/%3E%3Cpath d='M14 17h36v9H37v24H27V26H14z' fill='%23ff6e9f'/%3E%3Ccircle cx='47' cy='47' r='7' fill='%2396f27d'/%3E%3C/svg%3E">
+  <style>
+    :root {
+      --ink: #14182d;
+      --ink-2: #262b46;
+      --paper: #f6f7fb;
+      --card: #ffffff;
+      --line: #dfe2ec;
+      --muted: #737990;
+      --blue: #5368ee;
+      --pink: #f15c90;
+      --lime: #8ee374;
+      --amber: #f2bd55;
+      --shadow: 0 18px 50px rgba(20, 24, 45, .09);
+      --radius: 22px;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      min-width: 320px;
+      background:
+        radial-gradient(circle at 82% -4%, rgba(241, 92, 144, .16), transparent 28rem),
+        radial-gradient(circle at 3% 20%, rgba(83, 104, 238, .12), transparent 25rem),
+        var(--paper);
+      color: var(--ink);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 16px;
+      line-height: 1.55;
+    }
+
+    button, input, select { font: inherit; }
+    button { color: inherit; }
+    button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-visible {
+      outline: 3px solid rgba(83, 104, 238, .32);
+      outline-offset: 2px;
+    }
+
+    .shell { max-width: 1480px; margin: 0 auto; padding: 24px; }
+    .topbar {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 24px;
+      padding: 26px 28px;
+      border-radius: 28px;
+      background: var(--ink);
+      color: #fff;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      position: relative;
+    }
+    .topbar::after {
+      content: "TBILISI";
+      position: absolute;
+      right: -22px;
+      bottom: -40px;
+      font: 900 clamp(5rem, 12vw, 10rem)/1 Arial, sans-serif;
+      color: rgba(255,255,255,.035);
+      letter-spacing: -.07em;
+      pointer-events: none;
+    }
+    .eyebrow { margin: 0 0 7px; color: #b9c1ec; font-size: .78rem; font-weight: 800; letter-spacing: .13em; text-transform: uppercase; }
+    h1 { margin: 0; max-width: 760px; font: 800 clamp(2rem, 5vw, 4.6rem)/.98 Georgia, serif; letter-spacing: -.045em; }
+    .top-note { margin: 14px 0 0; max-width: 680px; color: #d8dced; }
+    .countdown {
+      align-self: stretch;
+      min-width: 190px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 18px;
+      border: 1px solid rgba(255,255,255,.13);
+      border-radius: 20px;
+      background: rgba(255,255,255,.06);
+      backdrop-filter: blur(8px);
+      z-index: 1;
+    }
+    .countdown strong { display: block; font: 800 2.7rem/1 Georgia, serif; color: var(--lime); }
+    .countdown span { color: #cdd2e8; font-size: .88rem; }
+
+    .progress-panel {
+      display: grid;
+      grid-template-columns: auto minmax(220px, 1fr) auto;
+      align-items: center;
+      gap: 18px;
+      margin: 18px 0;
+      padding: 16px 20px;
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      box-shadow: 0 8px 30px rgba(20,24,45,.05);
+    }
+    .progress-label strong { display: block; font-size: 1.25rem; }
+    .progress-label span, .save-note { color: var(--muted); font-size: .83rem; }
+    .progress-track { height: 12px; border-radius: 999px; background: #eceef5; overflow: hidden; }
+    .progress-fill { height: 100%; width: 0; border-radius: inherit; background: linear-gradient(90deg, var(--blue), var(--pink)); transition: width .35s ease; }
+    .progress-number { font-size: 1.35rem; font-weight: 850; }
+
+    .tabs { display: flex; gap: 8px; overflow-x: auto; padding: 4px 2px 12px; scrollbar-width: thin; }
+    .tab {
+      flex: 0 0 auto;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 10px 16px;
+      background: rgba(255,255,255,.72);
+      cursor: pointer;
+      font-weight: 760;
+    }
+    .tab[aria-selected="true"] { background: var(--ink); color: #fff; border-color: var(--ink); }
+
+    .panel[hidden] { display: none; }
+    .toolbar {
+      display: grid;
+      grid-template-columns: minmax(220px, 1fr) auto;
+      gap: 12px;
+      margin: 8px 0 18px;
+    }
+    .search {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 13px 16px;
+      background: #fff;
+      color: var(--ink);
+    }
+    .filters { display: flex; gap: 8px; overflow-x: auto; }
+    .filter {
+      flex: 0 0 auto;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 10px 13px;
+      background: #fff;
+      cursor: pointer;
+      font-size: .9rem;
+      font-weight: 700;
+    }
+    .filter.active { background: #e6e9ff; border-color: #aab4ff; color: #2e3aaa; }
+
+    .reel-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+    .reel-card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: 0 10px 34px rgba(20,24,45,.055);
+      overflow: hidden;
+      transition: transform .2s ease, opacity .2s ease, border-color .2s ease;
+    }
+    .reel-card:hover { transform: translateY(-2px); border-color: #c6cbdb; }
+    .reel-card.done { border-color: #b7dfa9; }
+    .reel-card.done .card-main { background: linear-gradient(135deg, #fff, #f3ffef); }
+    .card-main { padding: 20px; }
+    .card-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 14px; }
+    .reel-no { font: 850 2.2rem/1 Georgia, serif; color: var(--blue); }
+    .phase { display: inline-flex; align-items: center; gap: 6px; margin-bottom: 8px; color: var(--muted); font-size: .76rem; font-weight: 800; letter-spacing: .09em; text-transform: uppercase; }
+    .phase::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--pink); }
+    .card-title { margin: 0; font: 750 1.35rem/1.2 Georgia, serif; }
+    .goal { margin: 10px 0 0; color: var(--muted); font-size: .93rem; }
+    .meta { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 14px; }
+    .chip { padding: 5px 9px; border-radius: 9px; background: #f0f2f8; color: #555c73; font-size: .76rem; font-weight: 720; }
+    .shot-toggle { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; font-size: .88rem; font-weight: 800; white-space: nowrap; }
+    .shot-toggle input { width: 20px; height: 20px; accent-color: #57aa49; }
+    .card-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; }
+    .action {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: #fff;
+      padding: 9px 12px;
+      cursor: pointer;
+      font-weight: 760;
+      font-size: .85rem;
+    }
+    .action.primary { color: #fff; background: var(--blue); border-color: var(--blue); }
+    .action:hover { filter: brightness(.97); }
+    details.plan { border-top: 1px solid var(--line); }
+    details.plan summary { cursor: pointer; padding: 13px 20px; color: var(--muted); font-size: .88rem; font-weight: 800; list-style: none; }
+    details.plan summary::-webkit-details-marker { display: none; }
+    details.plan summary::after { content: "+"; float: right; font-size: 1.1rem; }
+    details.plan[open] summary::after { content: "−"; }
+    .plan-body { padding: 0 20px 22px; color: #34394f; }
+
+    .empty { padding: 50px 20px; text-align: center; color: var(--muted); background: #fff; border: 1px dashed var(--line); border-radius: var(--radius); }
+    .timeline { display: grid; gap: 12px; }
+    .timeline-item {
+      display: grid;
+      grid-template-columns: 120px 54px minmax(0, 1fr);
+      gap: 14px;
+      align-items: center;
+      padding: 15px 18px;
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 17px;
+    }
+    .timeline-date { color: var(--muted); font-size: .86rem; }
+    .timeline-num { display: grid; place-items: center; width: 42px; height: 42px; border-radius: 13px; background: var(--ink); color: #fff; font-weight: 850; }
+    .timeline-item.done .timeline-num { background: #58aa4c; }
+    .timeline-title { font-weight: 800; }
+
+    .resource-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+    .resource {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+    .resource summary { list-style: none; cursor: pointer; padding: 18px 20px; font: 750 1.1rem/1.3 Georgia, serif; }
+    .resource summary::-webkit-details-marker { display: none; }
+    .resource summary::after { content: "+"; float: right; color: var(--blue); }
+    .resource[open] summary::after { content: "−"; }
+    .resource-content { padding: 0 20px 22px; border-top: 1px solid var(--line); }
+    .resource-copy { margin-top: 15px; }
+
+    .md h3 { margin: 1.3em 0 .5em; font: 760 1.1rem/1.3 Georgia, serif; }
+    .md p { margin: .75em 0; }
+    .md ul, .md ol { padding-left: 1.25rem; }
+    .md li { margin: .35em 0; }
+    .md blockquote { margin: 14px 0; padding: 3px 0 3px 16px; border-left: 4px solid var(--pink); color: #3a4059; }
+    .md code { background: #eef0f7; border-radius: 6px; padding: 2px 5px; font-size: .9em; }
+    .md pre { padding: 14px; overflow-x: auto; background: var(--ink); color: #f4f5ff; border-radius: 14px; }
+    .md hr { border: 0; border-top: 1px solid var(--line); margin: 20px 0; }
+
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: 24px;
+      transform: translate(-50%, 20px);
+      opacity: 0;
+      pointer-events: none;
+      padding: 11px 16px;
+      background: var(--ink);
+      color: #fff;
+      border-radius: 12px;
+      box-shadow: var(--shadow);
+      transition: .2s ease;
+      z-index: 20;
+    }
+    .toast.show { opacity: 1; transform: translate(-50%, 0); }
+    footer { padding: 28px 4px 10px; color: var(--muted); font-size: .82rem; }
+
+    @media (max-width: 900px) {
+      .shell { padding: 14px; }
+      .topbar { grid-template-columns: 1fr; padding: 22px; }
+      .countdown { min-width: 0; flex-direction: row; align-items: center; gap: 18px; }
+      .reel-grid, .resource-grid { grid-template-columns: 1fr; }
+      .progress-panel { grid-template-columns: 1fr auto; }
+      .progress-track { grid-column: 1 / -1; grid-row: 2; }
+      .save-note { display: none; }
+    }
+
+    @media (max-width: 620px) {
+      .shell { padding: 10px; }
+      .topbar { border-radius: 22px; }
+      .top-note { font-size: .92rem; }
+      .toolbar { grid-template-columns: 1fr; }
+      .timeline-item { grid-template-columns: 82px 42px minmax(0, 1fr); padding: 12px; }
+      .timeline-date { font-size: .75rem; }
+      .card-main { padding: 17px; }
+      .card-top { align-items: center; }
+      .reel-no { font-size: 1.75rem; }
+      .card-title { font-size: 1.2rem; }
+      .action { flex: 1 1 auto; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; transition: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">production desk · season one</p>
+        <h1>Tbilisi,<br>in English</h1>
+        <p class="top-note">Все 20 Reels, съёмочные карты и тексты в одном месте. Отмечай снятое — прогресс сохранится на этом устройстве.</p>
+      </div>
+      <div class="countdown" aria-label="До поездки">
+        <div><strong id="daysLeft">—</strong><span id="daysLabel">до поездки</span></div>
+        <span>5–9 ноября 2026<br>Нальчик → Тбилиси</span>
+      </div>
+    </header>
+
+    <section class="progress-panel" aria-label="Прогресс съёмки">
+      <div class="progress-label"><strong id="progressText">0 из 20 снято</strong><span>общий прогресс сезона</span></div>
+      <div class="progress-track" aria-hidden="true"><div class="progress-fill" id="progressFill"></div></div>
+      <div class="progress-number" id="progressPercent">0%</div>
+      <div class="save-note">отметки сохраняются автоматически</div>
+    </section>
+
+    <nav class="tabs" aria-label="Разделы">
+      <button class="tab" role="tab" aria-selected="true" data-tab="reels">Reels</button>
+      <button class="tab" role="tab" aria-selected="false" data-tab="calendar">Календарь</button>
+      <button class="tab" role="tab" aria-selected="false" data-tab="toolkit">Съёмка и команда</button>
+    </nav>
+
+    <section class="panel" id="panel-reels" role="tabpanel">
+      <div class="toolbar">
+        <input class="search" id="search" type="search" placeholder="Найти ролик, героиню или фразу…" aria-label="Поиск по роликам">
+        <div class="filters" aria-label="Фильтр этапа">
+          <button class="filter active" data-phase="all">Все</button>
+          <button class="filter" data-phase="reveal">Раскрытие</button>
+          <button class="filter" data-phase="prep">Подготовка</button>
+          <button class="filter" data-phase="trip">В поездке</button>
+          <button class="filter" data-phase="after">После</button>
+          <button class="filter" data-phase="done">Снято</button>
+          <button class="filter" data-phase="todo">Не снято</button>
+        </div>
+      </div>
+      <div class="reel-grid" id="reelGrid" aria-live="polite"></div>
+    </section>
+
+    <section class="panel" id="panel-calendar" role="tabpanel" hidden>
+      <div class="timeline" id="timeline"></div>
+    </section>
+
+    <section class="panel" id="panel-toolkit" role="tabpanel" hidden>
+      <div class="resource-grid" id="resourceGrid"></div>
+    </section>
+
+    <footer>English Trip by Diana · рабочая панель первого сезона</footer>
+  </main>
+
+  <div class="toast" id="toast" role="status" aria-live="polite">Скопировано</div>
+
+  <script>
+    const STORAGE_KEY = 'tbilisi-in-english-progress-v1';
+    const tripDate = new Date('2026-11-05T00:00:00+03:00');
+    const phaseMap = {
+      reveal: { label: 'раскрытие', range: [1, 2] },
+      prep: { label: 'подготовка', range: [3, 6] },
+      trip: { label: 'в поездке', range: [7, 12] },
+      after: { label: 'после поездки', range: [13, 20] }
+    };
+
+    let source = '';
+    let reels = [];
+    let resources = [];
+    let currentFilter = 'all';
+    let progress = loadProgress();
+
+    function loadProgress() {
+      try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {}; }
+      catch { return {}; }
+    }
+
+    function saveProgress() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(progress));
+      updateProgress();
+    }
+
+    function phaseFor(number) {
+      return Object.entries(phaseMap).find(([, value]) => number >= value.range[0] && number <= value.range[1])?.[0] || 'after';
+    }
+
+    function cleanInline(value = '') {
+      return value.replace(/\*\*/g, '').replace(/`/g, '').replace(/\s{2,}/g, ' ').trim();
+    }
+
+    function stripMarkdown(value = '') {
+      return value
+        .replace(/^#{1,6}\s+/gm, '')
+        .replace(/^>\s?/gm, '')
+        .replace(/^[-*]\s+/gm, '• ')
+        .replace(/\*\*(.*?)\*\*/g, '$1')
+        .replace(/`([^`]+)`/g, '$1')
+        .replace(/\n{3,}/g, '\n\n')
+        .trim();
+    }
+
+    function extractField(body, label) {
+      const match = body.match(new RegExp('\\*\\*' + label + ':\\*\\*\\s*([^\\n]+)'));
+      return match ? cleanInline(match[1]) : '';
+    }
+
+    function extractVoice(body) {
+      const lines = body.split(/\r?\n/);
+      const start = lines.findIndex(line => /^\*\*(?:Сценарий голоса|Черновик голоса|Черновик финальной мысли|Финальный голос|Голос(?: строится[^*]*)?):\*\*/i.test(line.trim()));
+      if (start < 0) return '';
+      const quotes = [];
+      for (const line of lines.slice(start + 1)) {
+        if (/^\*\*.+\*\*/.test(line.trim()) || /^---+$/.test(line.trim())) break;
+        if (line.trimStart().startsWith('>')) quotes.push(line.trimStart().replace(/^>\s?/, '').trimEnd());
+      }
+      return quotes.join('\n').replace(/\n{3,}/g, '\n\n').trim();
+    }
+
+    function parseContent(markdown) {
+      reels = [];
+      const reelPattern = /^### REEL (\d+)\. ([^\r\n]+)\r?\n([\s\S]*?)(?=^### REEL \d+\.|^## \d+\.|(?![\s\S]))/gm;
+      let match;
+      while ((match = reelPattern.exec(markdown))) {
+        const number = Number(match[1]);
+        const body = match[3].trim();
+        reels.push({
+          number,
+          title: match[2].trim(),
+          body,
+          phase: phaseFor(number),
+          when: extractField(body, 'Когда'),
+          duration: extractField(body, 'Длина'),
+          goal: extractField(body, 'Задача'),
+          cover: extractField(body, 'Обложка') || extractField(body, 'Рабочая обложка'),
+          voice: extractVoice(body)
+        });
+      }
+
+      resources = [];
+      const sectionPattern = /^## (\d+)\. ([^\r\n]+)\r?\n([\s\S]*?)(?=^## \d+\.|(?![\s\S]))/gm;
+      while ((match = sectionPattern.exec(markdown))) {
+        const number = Number(match[1]);
+        if (number >= 8) resources.push({ number, title: match[2].trim(), body: match[3].trim() });
+      }
+    }
+
+    function escapeHtml(value = '') {
+      return value.replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[char]));
+    }
+
+    function inlineFormat(value) {
+      return escapeHtml(value)
+        .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+        .replace(/`(.+?)`/g, '<code>$1</code>');
+    }
+
+    function renderMarkdown(markdown) {
+      const lines = markdown.split('\n');
+      let html = '';
+      let list = null;
+      let quote = false;
+      let code = false;
+      let codeText = '';
+
+      const closeList = () => {
+        if (list) html += `</${list}>`;
+        list = null;
+      };
+      const closeQuote = () => {
+        if (quote) html += '</blockquote>';
+        quote = false;
+      };
+
+      for (const raw of lines) {
+        const line = raw.trimEnd();
+        if (line.startsWith('```')) {
+          closeList(); closeQuote();
+          if (!code) { code = true; codeText = ''; }
+          else { html += `<pre><code>${escapeHtml(codeText.trimEnd())}</code></pre>`; code = false; }
+          continue;
+        }
+        if (code) { codeText += raw + '\n'; continue; }
+        if (!line.trim()) { closeList(); closeQuote(); continue; }
+        if (/^---+$/.test(line.trim())) { closeList(); closeQuote(); html += '<hr>'; continue; }
+        const heading = line.match(/^###\s+(.+)/);
+        if (heading) { closeList(); closeQuote(); html += `<h3>${inlineFormat(heading[1])}</h3>`; continue; }
+        if (line.startsWith('>')) {
+          closeList();
+          if (!quote) { html += '<blockquote>'; quote = true; }
+          html += `<p>${inlineFormat(line.replace(/^>\s?/, ''))}</p>`;
+          continue;
+        }
+        closeQuote();
+        const unordered = line.match(/^[-*]\s+(.+)/);
+        const ordered = line.match(/^\d+\.\s+(.+)/);
+        if (unordered || ordered) {
+          const type = unordered ? 'ul' : 'ol';
+          if (list !== type) { closeList(); html += `<${type}>`; list = type; }
+          html += `<li>${inlineFormat((unordered || ordered)[1])}</li>`;
+          continue;
+        }
+        closeList();
+        html += `<p>${inlineFormat(line)}</p>`;
+      }
+      closeList(); closeQuote();
+      return html;
+    }
+
+    function showToast(message = 'Скопировано') {
+      const toast = document.getElementById('toast');
+      toast.textContent = message;
+      toast.classList.add('show');
+      clearTimeout(showToast.timer);
+      showToast.timer = setTimeout(() => toast.classList.remove('show'), 1600);
+    }
+
+    async function copyText(text, message) {
+      try {
+        await navigator.clipboard.writeText(text);
+      } catch {
+        const area = document.createElement('textarea');
+        area.value = text;
+        area.style.position = 'fixed';
+        area.style.opacity = '0';
+        document.body.appendChild(area);
+        area.select();
+        document.execCommand('copy');
+        area.remove();
+      }
+      showToast(message);
+    }
+
+    function renderReels() {
+      const query = document.getElementById('search').value.trim().toLowerCase();
+      const shown = reels.filter(reel => {
+        const done = Boolean(progress[reel.number]);
+        const phaseMatch = currentFilter === 'all' || reel.phase === currentFilter || (currentFilter === 'done' && done) || (currentFilter === 'todo' && !done);
+        const queryMatch = !query || `${reel.title} ${reel.body}`.toLowerCase().includes(query);
+        return phaseMatch && queryMatch;
+      });
+
+      const grid = document.getElementById('reelGrid');
+      if (!shown.length) {
+        grid.innerHTML = '<div class="empty">Ничего не найдено. Попробуй другой запрос или фильтр.</div>';
+        return;
+      }
+
+      grid.innerHTML = shown.map(reel => {
+        const done = Boolean(progress[reel.number]);
+        const phase = phaseMap[reel.phase].label;
+        return `
+          <article class="reel-card ${done ? 'done' : ''}" data-reel="${reel.number}">
+            <div class="card-main">
+              <div class="card-top">
+                <div>
+                  <div class="phase">${phase}</div>
+                  <h2 class="card-title">${escapeHtml(reel.title)}</h2>
+                </div>
+                <div class="reel-no">${String(reel.number).padStart(2, '0')}</div>
+              </div>
+              ${reel.goal ? `<p class="goal">${escapeHtml(reel.goal)}</p>` : ''}
+              <div class="meta">
+                ${reel.when ? `<span class="chip">${escapeHtml(reel.when)}</span>` : ''}
+                ${reel.duration ? `<span class="chip">${escapeHtml(reel.duration)}</span>` : ''}
+                ${reel.cover ? `<span class="chip">обложка: ${escapeHtml(reel.cover)}</span>` : ''}
+              </div>
+              <div class="card-actions">
+                <label class="shot-toggle"><input type="checkbox" data-check="${reel.number}" ${done ? 'checked' : ''}> снято</label>
+                ${reel.voice ? `<button class="action primary" data-copy-voice="${reel.number}">Копировать текст</button>` : ''}
+                <button class="action" data-copy-all="${reel.number}">Копировать весь план</button>
+              </div>
+            </div>
+            <details class="plan">
+              <summary>Открыть сценарий и кадры</summary>
+              <div class="plan-body md">${renderMarkdown(reel.body)}</div>
+            </details>
+          </article>`;
+      }).join('');
+
+      grid.querySelectorAll('[data-check]').forEach(input => input.addEventListener('change', event => {
+        const number = Number(event.currentTarget.dataset.check);
+        progress[number] = event.currentTarget.checked;
+        saveProgress();
+        renderReels();
+        renderTimeline();
+      }));
+      grid.querySelectorAll('[data-copy-voice]').forEach(button => button.addEventListener('click', () => {
+        const reel = reels.find(item => item.number === Number(button.dataset.copyVoice));
+        copyText(reel.voice, 'Текст Reels скопирован');
+      }));
+      grid.querySelectorAll('[data-copy-all]').forEach(button => button.addEventListener('click', () => {
+        const reel = reels.find(item => item.number === Number(button.dataset.copyAll));
+        copyText(`REEL ${reel.number}. ${reel.title}\n\n${stripMarkdown(reel.body)}`, 'Весь план скопирован');
+      }));
+    }
+
+    function renderTimeline() {
+      document.getElementById('timeline').innerHTML = reels.map(reel => `
+        <article class="timeline-item ${progress[reel.number] ? 'done' : ''}">
+          <div class="timeline-date">${escapeHtml(reel.when || phaseMap[reel.phase].label)}</div>
+          <div class="timeline-num">${reel.number}</div>
+          <div><div class="timeline-title">${escapeHtml(reel.title)}</div><div class="goal">${progress[reel.number] ? 'снято' : 'запланировано'}</div></div>
+        </article>`).join('');
+    }
+
+    function renderResources() {
+      document.getElementById('resourceGrid').innerHTML = resources.map(resource => `
+        <details class="resource">
+          <summary>${escapeHtml(resource.title)}</summary>
+          <div class="resource-content">
+            <button class="action primary resource-copy" data-copy-resource="${resource.number}">Копировать раздел</button>
+            <div class="md">${renderMarkdown(resource.body)}</div>
+          </div>
+        </details>`).join('');
+      document.querySelectorAll('[data-copy-resource]').forEach(button => button.addEventListener('click', () => {
+        const resource = resources.find(item => item.number === Number(button.dataset.copyResource));
+        copyText(`${resource.title}\n\n${stripMarkdown(resource.body)}`, 'Раздел скопирован');
+      }));
+    }
+
+    function updateProgress() {
+      const done = reels.filter(reel => progress[reel.number]).length;
+      const total = reels.length || 20;
+      const percent = Math.round(done / total * 100);
+      document.getElementById('progressText').textContent = `${done} из ${total} снято`;
+      document.getElementById('progressPercent').textContent = `${percent}%`;
+      document.getElementById('progressFill').style.width = `${percent}%`;
+    }
+
+    function updateCountdown() {
+      const now = new Date();
+      const days = Math.ceil((tripDate - now) / 86400000);
+      const number = document.getElementById('daysLeft');
+      const label = document.getElementById('daysLabel');
+      if (days > 0) { number.textContent = days; label.textContent = days === 1 ? 'день до поездки' : 'дней до поездки'; }
+      else if (days >= -4) { number.textContent = 'LIVE'; label.textContent = 'поездка идёт'; }
+      else { number.textContent = 'S1'; label.textContent = 'история продолжается'; }
+    }
+
+    function bindUI() {
+      document.querySelectorAll('.tab').forEach(tab => tab.addEventListener('click', () => {
+        document.querySelectorAll('.tab').forEach(item => item.setAttribute('aria-selected', String(item === tab)));
+        document.querySelectorAll('.panel').forEach(panel => panel.hidden = panel.id !== `panel-${tab.dataset.tab}`);
+      }));
+      document.querySelectorAll('.filter').forEach(button => button.addEventListener('click', () => {
+        document.querySelectorAll('.filter').forEach(item => item.classList.remove('active'));
+        button.classList.add('active');
+        currentFilter = button.dataset.phase;
+        renderReels();
+      }));
+      document.getElementById('search').addEventListener('input', renderReels);
+    }
+
+    function registerWebMCP() {
+      const context = document.modelContext;
+      if (!context?.registerTool) return;
+      const report = error => console.warn('WebMCP tool registration failed', error);
+
+      Promise.resolve(context.registerTool({
+        name: 'set_reel_filmed',
+        title: 'Отметить Reels',
+        description: 'Отмечает один Reels как снятый или возвращает его в план. Обновляет тот же прогресс, что и чекбокс на карточке.',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            reelNumber: { type: 'integer', minimum: 1, maximum: 20 },
+            filmed: { type: 'boolean' }
+          },
+          required: ['reelNumber', 'filmed'],
+          additionalProperties: false
+        },
+        annotations: { readOnlyHint: false, untrustedContentHint: false },
+        execute(input) {
+          const number = Number(input?.reelNumber);
+          if (!Number.isInteger(number) || number < 1 || number > 20 || typeof input?.filmed !== 'boolean') {
+            throw new Error('Нужны reelNumber от 1 до 20 и filmed true/false');
+          }
+          progress[number] = input.filmed;
+          saveProgress();
+          renderReels();
+          renderTimeline();
+          return { reelNumber: number, filmed: input.filmed };
+        }
+      })).catch(report);
+
+      Promise.resolve(context.registerTool({
+        name: 'read_reel_plan',
+        title: 'Прочитать план Reels',
+        description: 'Возвращает название, текст для озвучки и полный план выбранного Reels.',
+        inputSchema: {
+          type: 'object',
+          properties: { reelNumber: { type: 'integer', minimum: 1, maximum: 20 } },
+          required: ['reelNumber'],
+          additionalProperties: false
+        },
+        annotations: { readOnlyHint: true, untrustedContentHint: false },
+        execute(input) {
+          const reel = reels.find(item => item.number === Number(input?.reelNumber));
+          if (!reel) throw new Error('Reels с таким номером не найден');
+          return { reelNumber: reel.number, title: reel.title, voiceover: reel.voice, plan: stripMarkdown(reel.body) };
+        }
+      })).catch(report);
+    }
+
+    async function init() {
+      try {
+        const response = await fetch('./content.md', { cache: 'no-store' });
+        if (!response.ok) throw new Error('content unavailable');
+        source = await response.text();
+        parseContent(source);
+        renderReels();
+        renderTimeline();
+        renderResources();
+        updateProgress();
+        registerWebMCP();
+      } catch {
+        document.getElementById('reelGrid').innerHTML = '<div class="empty">Не удалось загрузить контент-план. Обнови страницу чуть позже.</div>';
+      }
+      updateCountdown();
+      bindUI();
+    }
+
+    init();
+  </script>
+</body>
+</html>
+
