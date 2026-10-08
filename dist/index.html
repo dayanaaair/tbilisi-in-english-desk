@@ -38,9 +38,9 @@
       line-height: 1.55;
     }
 
-    button, input, select { font: inherit; }
+    button, input, select, textarea { font: inherit; }
     button { color: inherit; }
-    button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-visible {
+    button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible, summary:focus-visible {
       outline: 3px solid rgba(83, 104, 238, .32);
       outline-offset: 2px;
     }
@@ -218,6 +218,36 @@
     .resource-content { padding: 0 20px 22px; border-top: 1px solid var(--line); }
     .resource-copy { margin-top: 15px; }
 
+    .telegram-grid { display: grid; gap: 16px; }
+    .telegram-card {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: 0 10px 34px rgba(20,24,45,.055);
+      overflow: hidden;
+    }
+    .telegram-card.published { border-color: #b7dfa9; }
+    .telegram-card.approved { border-color: #bfc6ff; }
+    .telegram-head { padding: 20px; }
+    .telegram-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; }
+    .telegram-date { color: var(--blue); font-size: .85rem; font-weight: 850; white-space: nowrap; }
+    .telegram-title { margin: 5px 0 0; font: 760 1.35rem/1.2 Georgia, serif; }
+    .telegram-goal { margin: 10px 0 0; color: var(--muted); }
+    .status-select { border: 1px solid var(--line); border-radius: 11px; padding: 8px 10px; background: #fff; color: var(--ink); font-weight: 720; }
+    .telegram-body { border-top: 1px solid var(--line); }
+    .telegram-body > summary { cursor: pointer; list-style: none; padding: 14px 20px; color: var(--muted); font-weight: 800; }
+    .telegram-body > summary::-webkit-details-marker { display: none; }
+    .telegram-body > summary::after { content: "+"; float: right; color: var(--blue); }
+    .telegram-body[open] > summary::after { content: "−"; }
+    .telegram-content { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, .9fr); gap: 18px; padding: 0 20px 20px; }
+    .content-column { min-width: 0; }
+    .content-label { margin: 0 0 10px; color: var(--muted); font-size: .76rem; font-weight: 850; letter-spacing: .08em; text-transform: uppercase; }
+    .copy-row { display: flex; flex-wrap: wrap; gap: 8px; margin: 14px 0 0; }
+    .note-box { padding: 16px 20px 20px; border-top: 1px solid var(--line); background: #fafbfe; }
+    .note-title { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 8px; font-weight: 800; }
+    .note-area { width: 100%; min-height: 88px; resize: vertical; border: 1px solid var(--line); border-radius: 13px; padding: 12px 14px; background: #fff; color: var(--ink); }
+    .note-hint { margin-top: 6px; color: var(--muted); font-size: .78rem; }
+
     .md h3 { margin: 1.3em 0 .5em; font: 760 1.1rem/1.3 Georgia, serif; }
     .md p { margin: .75em 0; }
     .md ul, .md ol { padding-left: 1.25rem; }
@@ -250,6 +280,7 @@
       .topbar { grid-template-columns: 1fr; padding: 22px; }
       .countdown { min-width: 0; flex-direction: row; align-items: center; gap: 18px; }
       .reel-grid, .resource-grid { grid-template-columns: 1fr; }
+      .telegram-content { grid-template-columns: 1fr; }
       .progress-panel { grid-template-columns: 1fr auto; }
       .progress-track { grid-column: 1 / -1; grid-row: 2; }
       .save-note { display: none; }
@@ -280,7 +311,7 @@
       <div>
         <p class="eyebrow">production desk · season one</p>
         <h1>Tbilisi,<br>in English</h1>
-        <p class="top-note">Все 20 Reels, съёмочные карты и тексты в одном месте. Отмечай снятое — прогресс сохранится на этом устройстве.</p>
+        <p class="top-note">Все 20 Reels, Telegram-календарь, Stories и съёмочные карты в одном месте. Статусы и заметки сохраняются на этом устройстве.</p>
       </div>
       <div class="countdown" aria-label="До поездки">
         <div><strong id="daysLeft">—</strong><span id="daysLabel">до поездки</span></div>
@@ -297,6 +328,7 @@
 
     <nav class="tabs" aria-label="Разделы">
       <button class="tab" role="tab" aria-selected="true" data-tab="reels">Reels</button>
+      <button class="tab" role="tab" aria-selected="false" data-tab="telegram">Telegram</button>
       <button class="tab" role="tab" aria-selected="false" data-tab="calendar">Календарь</button>
       <button class="tab" role="tab" aria-selected="false" data-tab="toolkit">Съёмка и команда</button>
     </nav>
@@ -317,6 +349,22 @@
       <div class="reel-grid" id="reelGrid" aria-live="polite"></div>
     </section>
 
+    <section class="panel" id="panel-telegram" role="tabpanel" hidden>
+      <div class="toolbar">
+        <input class="search" id="telegramSearch" type="search" placeholder="Найти пост, дату или тему…" aria-label="Поиск по Telegram-плану">
+        <div class="filters" id="telegramFilters" aria-label="Фильтр Telegram-плана">
+          <button class="filter active" data-tg-line="all">Все</button>
+          <button class="filter" data-tg-line="project">Проект</button>
+          <button class="filter" data-tg-line="english">Английский</button>
+          <button class="filter" data-tg-line="personal">Личное</button>
+          <button class="filter" data-tg-line="teacher">Преподавание</button>
+          <button class="filter" data-tg-line="sales">Продажи</button>
+          <button class="filter" data-tg-line="live">Живое</button>
+        </div>
+      </div>
+      <div class="telegram-grid" id="telegramGrid" aria-live="polite"></div>
+    </section>
+
     <section class="panel" id="panel-calendar" role="tabpanel" hidden>
       <div class="timeline" id="timeline"></div>
     </section>
@@ -332,6 +380,8 @@
 
   <script>
     const STORAGE_KEY = 'tbilisi-in-english-progress-v1';
+    const NOTES_KEY = 'tbilisi-in-english-notes-v1';
+    const TELEGRAM_STATUS_KEY = 'tbilisi-in-english-telegram-status-v1';
     const tripDate = new Date('2026-11-05T00:00:00+03:00');
     const phaseMap = {
       reveal: { label: 'раскрытие', range: [1, 2] },
@@ -339,12 +389,29 @@
       trip: { label: 'в поездке', range: [7, 12] },
       after: { label: 'после поездки', range: [13, 20] }
     };
+    const telegramLineMap = {
+      project: 'проект', english: 'английский', personal: 'личное',
+      teacher: 'преподавание', sales: 'продажи', live: 'живое'
+    };
 
     let source = '';
     let reels = [];
     let resources = [];
+    let telegramPosts = [];
     let currentFilter = 'all';
+    let currentTelegramFilter = 'all';
     let progress = loadProgress();
+    let notes = loadObject(NOTES_KEY);
+    let telegramStatuses = loadObject(TELEGRAM_STATUS_KEY);
+
+    function loadObject(key) {
+      try { return JSON.parse(localStorage.getItem(key)) || {}; }
+      catch { return {}; }
+    }
+
+    function saveObject(key, value) {
+      localStorage.setItem(key, JSON.stringify(value));
+    }
 
     function loadProgress() {
       try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {}; }
@@ -373,6 +440,51 @@
         .replace(/`([^`]+)`/g, '$1')
         .replace(/\n{3,}/g, '\n\n')
         .trim();
+    }
+
+    function cleanCopyBlock(value = '') {
+      return value.replace(/^```(?:text)?\s*/i, '').replace(/\s*```$/i, '').trim();
+    }
+
+    function telegramField(body, label) {
+      const match = body.match(new RegExp('\\*\\*' + label + ':\\*\\*\\s*([^\\n]+)', 'i'));
+      return match ? cleanInline(match[1]) : '';
+    }
+
+    function telegramSection(body, heading, nextHeading) {
+      const marker = `#### ${heading}`;
+      const markerIndex = body.indexOf(marker);
+      if (markerIndex < 0) return '';
+      const contentStart = body.indexOf('\n', markerIndex);
+      if (contentStart < 0) return '';
+      const nextMarker = nextHeading ? `#### ${nextHeading}` : '';
+      const end = nextMarker ? body.indexOf(nextMarker, contentStart + 1) : body.length;
+      return cleanCopyBlock(body.slice(contentStart + 1, end < 0 ? body.length : end));
+    }
+
+    function parseTelegram(markdown) {
+      telegramPosts = [];
+      const source = `${markdown.trim()}\n\n### POST __END__ · END\n`;
+      const pattern = /^### POST ([\w-]+) · ([^\r\n]+)\r?\n([\s\S]*?)(?=^### POST )/gm;
+      let match;
+      while ((match = pattern.exec(source))) {
+        if (match[1] === '__END__') break;
+        const body = match[3].trim();
+        telegramPosts.push({
+          id: match[1],
+          title: match[2].trim(),
+          date: telegramField(body, 'Дата'),
+          line: telegramField(body, 'Линия') || 'live',
+          format: telegramField(body, 'Формат'),
+          defaultStatus: telegramField(body, 'Статус') || 'draft',
+          goal: telegramField(body, 'Задача'),
+          reels: telegramField(body, 'Связь с Reels'),
+          media: telegramField(body, 'Медиа'),
+          post: telegramSection(body, 'Telegram', 'Stories'),
+          stories: telegramSection(body, 'Stories', 'Примечания'),
+          extra: telegramSection(body, 'Примечания', null)
+        });
+      }
     }
 
     function extractField(body, label) {
@@ -506,6 +618,25 @@
       showToast(message);
     }
 
+    function noteMarkup(key) {
+      const value = notes[key] || '';
+      return `<div class="note-box">
+        <div class="note-title"><span>Мои заметки</span><button class="action" data-copy-note="${escapeHtml(key)}">Копировать заметку</button></div>
+        <textarea class="note-area" data-note="${escapeHtml(key)}" placeholder="Что переписать, доснять или проверить…">${escapeHtml(value)}</textarea>
+        <div class="note-hint">сохраняется автоматически только в этом браузере</div>
+      </div>`;
+    }
+
+    function bindNotes(scope) {
+      scope.querySelectorAll('[data-note]').forEach(area => area.addEventListener('input', event => {
+        notes[event.currentTarget.dataset.note] = event.currentTarget.value;
+        saveObject(NOTES_KEY, notes);
+      }));
+      scope.querySelectorAll('[data-copy-note]').forEach(button => button.addEventListener('click', () => {
+        copyText(notes[button.dataset.copyNote] || '', 'Заметка скопирована');
+      }));
+    }
+
     function renderReels() {
       const query = document.getElementById('search').value.trim().toLowerCase();
       const shown = reels.filter(reel => {
@@ -550,6 +681,7 @@
               <summary>Открыть сценарий и кадры</summary>
               <div class="plan-body md">${renderMarkdown(reel.body)}</div>
             </details>
+            ${noteMarkup(`reel-${reel.number}`)}
           </article>`;
       }).join('');
 
@@ -568,6 +700,88 @@
         const reel = reels.find(item => item.number === Number(button.dataset.copyAll));
         copyText(`REEL ${reel.number}. ${reel.title}\n\n${stripMarkdown(reel.body)}`, 'Весь план скопирован');
       }));
+      bindNotes(grid);
+    }
+
+    function statusLabel(value) {
+      return ({ draft: 'черновик', approved: 'согласован', published: 'опубликован' })[value] || 'черновик';
+    }
+
+    function renderTelegram() {
+      const query = document.getElementById('telegramSearch').value.trim().toLowerCase();
+      const shown = telegramPosts.filter(post => {
+        const lineMatch = currentTelegramFilter === 'all' || post.line === currentTelegramFilter;
+        const queryMatch = !query || `${post.date} ${post.title} ${post.goal} ${post.post} ${post.stories}`.toLowerCase().includes(query);
+        return lineMatch && queryMatch;
+      });
+      const grid = document.getElementById('telegramGrid');
+      if (!shown.length) {
+        grid.innerHTML = '<div class="empty">Ничего не найдено. Попробуй другой запрос или фильтр.</div>';
+        return;
+      }
+      grid.innerHTML = shown.map(post => {
+        const status = telegramStatuses[post.id] || post.defaultStatus;
+        const assistantBrief = [
+          `${post.date} · ${post.title}`,
+          post.goal ? `Задача: ${post.goal}` : '',
+          post.media ? `Медиа: ${post.media}` : '',
+          post.stories ? `STORIES\n\n${stripMarkdown(post.stories)}` : 'Stories: простой репост публикации.'
+        ].filter(Boolean).join('\n\n');
+        return `<article class="telegram-card ${escapeHtml(status)}" data-post="${escapeHtml(post.id)}">
+          <div class="telegram-head">
+            <div class="telegram-top">
+              <div>
+                <div class="phase">${escapeHtml(telegramLineMap[post.line] || post.line)}</div>
+                <h2 class="telegram-title">${escapeHtml(post.title)}</h2>
+              </div>
+              <div class="telegram-date">${escapeHtml(post.date)}</div>
+            </div>
+            ${post.goal ? `<p class="telegram-goal">${escapeHtml(post.goal)}</p>` : ''}
+            <div class="meta">
+              ${post.format ? `<span class="chip">${escapeHtml(post.format)}</span>` : ''}
+              ${post.reels ? `<span class="chip">${escapeHtml(post.reels)}</span>` : ''}
+              ${post.media ? `<span class="chip">медиа: ${escapeHtml(post.media)}</span>` : ''}
+            </div>
+            <div class="card-actions">
+              ${post.post ? `<button class="action primary" data-copy-post="${escapeHtml(post.id)}">Копировать пост</button>` : ''}
+              ${post.stories ? `<button class="action" data-copy-stories="${escapeHtml(post.id)}">Копировать Stories</button>` : ''}
+              <button class="action" data-copy-assistant="${escapeHtml(post.id)}">Копировать ТЗ для Веры</button>
+              <select class="status-select" data-status="${escapeHtml(post.id)}" aria-label="Статус публикации">
+                ${['draft','approved','published'].map(value => `<option value="${value}" ${value === status ? 'selected' : ''}>${statusLabel(value)}</option>`).join('')}
+              </select>
+            </div>
+          </div>
+          <details class="telegram-body">
+            <summary>Открыть пост и Stories</summary>
+            <div class="telegram-content">
+              <section class="content-column"><p class="content-label">Telegram</p><div class="md">${post.post ? renderMarkdown(post.post) : '<p>Живая публикация без заранее заданного текста.</p>'}</div></section>
+              <section class="content-column"><p class="content-label">Instagram Stories</p><div class="md">${post.stories ? renderMarkdown(post.stories) : '<p>Простой репост или один живой кадр.</p>'}</div></section>
+            </div>
+            ${post.extra ? `<div class="plan-body md">${renderMarkdown(post.extra)}</div>` : ''}
+          </details>
+          ${noteMarkup(`telegram-${post.id}`)}
+        </article>`;
+      }).join('');
+
+      grid.querySelectorAll('[data-copy-post]').forEach(button => button.addEventListener('click', () => {
+        const post = telegramPosts.find(item => item.id === button.dataset.copyPost);
+        copyText(stripMarkdown(post.post), 'Пост скопирован');
+      }));
+      grid.querySelectorAll('[data-copy-stories]').forEach(button => button.addEventListener('click', () => {
+        const post = telegramPosts.find(item => item.id === button.dataset.copyStories);
+        copyText(stripMarkdown(post.stories), 'Stories скопированы');
+      }));
+      grid.querySelectorAll('[data-copy-assistant]').forEach(button => button.addEventListener('click', () => {
+        const post = telegramPosts.find(item => item.id === button.dataset.copyAssistant);
+        const brief = [`${post.date} · ${post.title}`, post.goal ? `Задача: ${post.goal}` : '', post.media ? `Медиа: ${post.media}` : '', post.stories ? `STORIES\n\n${stripMarkdown(post.stories)}` : 'Stories: простой репост публикации.'].filter(Boolean).join('\n\n');
+        copyText(brief, 'ТЗ для Веры скопировано');
+      }));
+      grid.querySelectorAll('[data-status]').forEach(select => select.addEventListener('change', event => {
+        telegramStatuses[event.currentTarget.dataset.status] = event.currentTarget.value;
+        saveObject(TELEGRAM_STATUS_KEY, telegramStatuses);
+        renderTelegram();
+      }));
+      bindNotes(grid);
     }
 
     function renderTimeline() {
@@ -618,13 +832,20 @@
         document.querySelectorAll('.tab').forEach(item => item.setAttribute('aria-selected', String(item === tab)));
         document.querySelectorAll('.panel').forEach(panel => panel.hidden = panel.id !== `panel-${tab.dataset.tab}`);
       }));
-      document.querySelectorAll('.filter').forEach(button => button.addEventListener('click', () => {
-        document.querySelectorAll('.filter').forEach(item => item.classList.remove('active'));
+      document.querySelectorAll('[data-phase]').forEach(button => button.addEventListener('click', () => {
+        document.querySelectorAll('[data-phase]').forEach(item => item.classList.remove('active'));
         button.classList.add('active');
         currentFilter = button.dataset.phase;
         renderReels();
       }));
+      document.querySelectorAll('[data-tg-line]').forEach(button => button.addEventListener('click', () => {
+        document.querySelectorAll('[data-tg-line]').forEach(item => item.classList.remove('active'));
+        button.classList.add('active');
+        currentTelegramFilter = button.dataset.tgLine;
+        renderTelegram();
+      }));
       document.getElementById('search').addEventListener('input', renderReels);
+      document.getElementById('telegramSearch').addEventListener('input', renderTelegram);
     }
 
     function registerWebMCP() {
@@ -688,9 +909,14 @@
         renderTimeline();
         renderResources();
         updateProgress();
+        const telegramResponse = await fetch('./telegram.md', { cache: 'no-store' });
+        if (!telegramResponse.ok) throw new Error('telegram plan unavailable');
+        parseTelegram(await telegramResponse.text());
+        renderTelegram();
         registerWebMCP();
       } catch {
         document.getElementById('reelGrid').innerHTML = '<div class="empty">Не удалось загрузить контент-план. Обнови страницу чуть позже.</div>';
+        document.getElementById('telegramGrid').innerHTML = '<div class="empty">Не удалось загрузить Telegram-план. Обнови страницу чуть позже.</div>';
       }
       updateCountdown();
       bindUI();
